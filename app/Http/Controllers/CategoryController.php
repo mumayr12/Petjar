@@ -54,7 +54,7 @@ class CategoryController extends Controller
             'summary' => 'string|nullable',
             // Changed photo validation to accept string or file if using file upload later
             // 'photo' => 'string|nullable', // Original validation
-            'photo' => 'nullable|string', // Keeping string for now based on input type 'text' and filemanager
+             'photo' => 'nullable|string', // Keeping string for now based on input type 'text' and filemanager
             'status' => 'required|in:active,inactive',
             'is_parent' => 'sometimes|in:1', // 'sometimes' means it's validated only if present
             'parent_id' => 'nullable|exists:categories,id',
@@ -126,7 +126,7 @@ class CategoryController extends Controller
         $this->validate($request, [
             'title' => 'string|required',
             'summary' => 'string|nullable',
-            'photo' => 'nullable|string', // Keeping string for now based on input type 'text' and filemanager
+             'photo' => 'nullable|string', // Keeping string for now based on input type 'text' and filemanager
             'status' => 'required|in:active,inactive',
             'is_parent' => 'sometimes|in:1',
             'parent_id' => 'nullable|exists:categories,id',
@@ -135,10 +135,10 @@ class CategoryController extends Controller
         // Use input('is_parent', 0) to handle case where checkbox is unchecked (not present in request)
         $data['is_parent'] = $request->input('is_parent', 0);
 
-        // Ensure parent_id is set to null if it's a parent category
-        if ($data['is_parent'] == 1) {
-            $data['parent_id'] = null;
-        }
+         // Ensure parent_id is set to null if it's a parent category
+         if ($data['is_parent'] == 1) {
+             $data['parent_id'] = null;
+         }
 
         // return $data; // Commented out, good.
         $status = $category->fill($data)->save();
@@ -163,18 +163,18 @@ class CategoryController extends Controller
         // is assumed to be within the Category::shiftChild method or handled differently.
         // If Category::shiftChild is supposed to *be* called with the child IDs,
         // then the logic is here. Let's assume shiftChild handles the re-parenting.
-        $child_cat_id = Category::where('parent_id', $id)->pluck('id'); // Get IDs of children
+         $child_cat_id = Category::where('parent_id',$id)->pluck('id'); // Get IDs of children
 
         $status = $category->delete();
 
         if ($status) {
-            // If there are children and the parent is deleted, call shiftChild
-            // Assuming shiftChild exists and handles re-parenting or deletion of children.
-            // The original code checked count($child_cat_id) > 0 before calling,
-            // which is correct.
-            if (count($child_cat_id) > 0) {
-                Category::shiftChild($child_cat_id); // Call custom method to handle children
-            }
+             // If there are children and the parent is deleted, call shiftChild
+             // Assuming shiftChild exists and handles re-parenting or deletion of children.
+             // The original code checked count($child_cat_id) > 0 before calling,
+             // which is correct.
+             if(count($child_cat_id)>0){
+                 Category::shiftChild($child_cat_id); // Call custom method to handle children
+             }
             Session::flash('success', 'Category deleted');
         } else {
             Session::flash('error', 'Error while deleting category');

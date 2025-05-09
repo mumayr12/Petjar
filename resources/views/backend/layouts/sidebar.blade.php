@@ -53,8 +53,8 @@
         <div id="categoryCollapse" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
             <h6 class="collapse-header">Category Options:</h6>
-            <a class="collapse-item" href="#">Category</a>
-            <a class="collapse-item" href="#">Add Category</a>
+            <a class="collapse-item" href="{{ route('category.index') }}">Category</a>
+            <a class="collapse-item" href="{{ route('category.create') }}">Add Category</a>
           </div>
         </div>
     </li>
@@ -71,6 +71,7 @@
             <a class="collapse-item" href="#">Add Product</a>
           </div>
         </div>
+
     </li>
 
     {{-- Brands --}}
@@ -82,8 +83,8 @@
         <div id="brandCollapse" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
             <h6 class="collapse-header">Brand Options:</h6>
-            <a class="collapse-item" href="#">Brands</a>
-            <a class="collapse-item" href="#">Add Brand</a>
+            <a class="collapse-item" href="{{ route('brand.index') }}">Brands</a>
+            <a class="collapse-item" href="{{ route('brand.create') }}">Add Brand</a>
           </div>
         </div>
     </li>

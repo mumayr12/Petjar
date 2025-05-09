@@ -1,20 +1,16 @@
 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow" style="background-color: rgba(255,231,193,255);">
 
-    <!-- Sidebar Toggle (Topbar) -->
     <button id="sidebarToggleTop" class="btn btn-link  rounded-circle mr-3">
       <i class="fa fa-bars"></i>
     </button>
 
 
-    <!-- Topbar Navbar -->
     <ul class="navbar-nav ml-auto">
 
-      <!-- Nav Item - Search Dropdown (Visible Only XS) -->
       <li class="nav-item dropdown no-arrow d-sm-none">
         <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <i class="fas fa-search fa-fw"></i>
         </a>
-        <!-- Dropdown - Messages -->
         <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in" aria-labelledby="searchDropdown">
           <form class="form-inline mr-auto w-100 navbar-search">
             <div class="input-group">
@@ -36,19 +32,18 @@
         </a>
       </li>
 
-      <!-- Nav Item - Alerts -->
       <li class="nav-item dropdown no-arrow mx-1">
-      
+
       </li>
 
-      <!-- Nav Item - Messages -->
       <li class="nav-item dropdown no-arrow mx-1" id="messageT" data-url="#">
-      
+
       </li>
 
       <div class="topbar-divider d-none d-sm-block"></div>
 
-      <!-- Nav Item - User Information -->
+      {{-- Wrap the user info section with @auth to check if a user is logged in --}}
+      @auth
       <li class="nav-item dropdown no-arrow">
         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{Auth()->user()->name}}</span>
@@ -58,7 +53,6 @@
             <img class="img-profile rounded-circle" src="{{asset('backend/img/avatar.png')}}">
           @endif
         </a>
-        <!-- Dropdown - User Information -->
         <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
           <a class="dropdown-item" href="#">
             <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
@@ -74,19 +68,27 @@
           </a>
           <div class="dropdown-divider"></div>
           <a class="dropdown-item" href="#"
-                onclick="event.preventDefault();
-                                document.getElementById('logout-form').submit();">
+                 onclick="event.preventDefault();
+                                 document.getElementById('logout-form').submit();">
                  <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i> {{ __('Logout') }}
             </a>
 
-            <form id="logout-form" action="" method="POST" style="display: none;">
+            {{-- Corrected the form action to a valid logout route --}}
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                 @csrf
             </form>
         </div>
       </li>
+      @else
+          {{-- Optional: Display a login link or alternative if not authenticated --}}
+          <li class="nav-item dropdown no-arrow">
+              <a class="nav-link" href="{{ route('login') }}">
+                  <span class="mr-2 d-none d-lg-inline text-gray-600 small">Login</span>
+                  <i class="fas fa-sign-in-alt"></i>
+              </a>
+          </li>
+      @endauth
 
     </ul>
 
   </nav>
-
-
