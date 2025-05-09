@@ -1,8 +1,9 @@
 <?php
 
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\BannerController; // Make sure this line exists and is correct
+use App\Http\Controllers\BannerController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -21,17 +22,18 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Auth::routes(['register'=>false]);
+Auth::routes(['register' => false]);
 
 //home
-Route::get('/home',[HomeController::class,'index'])->name('home');
+Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 //admin login
-Route::group(['prefix'=>'admin','middleware'=>'auth'],function()
-{
-   Route::get('/',[AdminController::class,'admin'])->name('admin');
+Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
+    Route::get('/', [AdminController::class, 'admin'])->name('admin');
 });
 
 //banner
-// CHANGE THIS LINE:
-Route::resource('banner', BannerController::class); 
+Route::resource('banner', BannerController::class);
+//category
+Route::resource('/category', CategoryController::class);
+
