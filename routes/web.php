@@ -26,22 +26,37 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Auth::routes(['register'=>false]);
+Auth::routes(['register' => false]);
 
 //home
-Route::get('/home',[HomeController::class,'index'])->name('home');
+Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 //admin login
-Route::group(['prefix'=>'admin','middleware'=>'auth'],function()
-{
-   Route::get('/',[AdminController::class,'admin'])->name('admin');
+Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
+    Route::get('/', [AdminController::class, 'admin'])->name('admin');
+
 });
 
 //banner
-Route::resource('banner', BannerController::class); 
+Route::resource('banner', BannerController::class);
 //category
-Route::resource('/category', CategoryController::class); 
+Route::resource('/category', CategoryController::class);
 //Brand
-Route::resource('brand',BrandController::class);
+Route::resource('brand', BrandController::class);
 //shippings
-Route::resource('/shipping',ShippingController::class);
+Route::resource('/shipping', ShippingController::class);
+//products
+Route::resource('/product', ProductController::class);
+
+//settings
+
+Route::get('settings', [AdminController::class, 'settings'])->name('settings');
+
+//update settins
+Route::post('settings/update', [AdminController::class, 'settingsUpdate'])->name('settings.update');
+
+//profile
+Route::get('/profile', [AdminController::class, 'profile'])->name('admin-profile');
+
+//update profile.
+Route::post('/admin/profile/update/{id}', [AdminController::class, 'profileUpdate'])->name('profile-update');

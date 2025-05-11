@@ -151,4 +151,4 @@
           })
       })
   </script>
-@endpushs
+@endpush
