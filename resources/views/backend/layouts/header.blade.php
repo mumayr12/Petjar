@@ -58,7 +58,7 @@
             <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
             Profile
           </a>
-          <a class="dropdown-item" href="#">
+          <a class="dropdown-item" href="{{ route('change.password.form') }}">
             <i class="fas fa-key fa-sm fa-fw mr-2 text-gray-400"></i>
             Change Password
           </a>
@@ -73,14 +73,12 @@
                  <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i> {{ __('Logout') }}
             </a>
 
-            {{-- Corrected the form action to a valid logout route --}}
             <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                 @csrf
             </form>
         </div>
       </li>
       @else
-          {{-- Optional: Display a login link or alternative if not authenticated --}}
           <li class="nav-item dropdown no-arrow">
               <a class="nav-link" href="{{ route('login') }}">
                   <span class="mr-2 d-none d-lg-inline text-gray-600 small">Login</span>

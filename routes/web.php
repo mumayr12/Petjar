@@ -60,3 +60,7 @@ Route::get('/profile', [AdminController::class, 'profile'])->name('admin-profile
 
 //update profile.
 Route::post('/admin/profile/update/{id}', [AdminController::class, 'profileUpdate'])->name('profile-update');
+
+//changepassword
+Route::get('change-password', [AdminController::class, 'changePassword'])->name('change.password.form');
+Route::post('change-password', [AdminController::class, 'changPasswordStore'])->name('change.password');
