@@ -5,6 +5,8 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\FrontendController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ShippingController;
 use Illuminate\Support\Facades\Auth;
@@ -22,18 +24,19 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
+
+
+//backend section
 Auth::routes(['register' => false]);
 
 //home
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 //admin login
-Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
-    Route::get('/', [AdminController::class, 'admin'])->name('admin');
+Route::group(['prefix' => '/admin', 'middleware' => 'auth', 'admin'], function () {
+    Route::get('/', [AdminController::class, 'index'])->name('admin');
+    //Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('admin');
 
 });
 
@@ -64,3 +67,36 @@ Route::post('/admin/profile/update/{id}', [AdminController::class, 'profileUpdat
 //changepassword
 Route::get('change-password', [AdminController::class, 'changePassword'])->name('change.password.form');
 Route::post('change-password', [AdminController::class, 'changPasswordStore'])->name('change.password');
+
+
+
+
+
+
+
+// front end section
+//Route::get('/home',[FrontendController::class,'index']);
+
+
+
+
+
+
+//user login
+Route::get('user/login', [FrontendController::class, 'login'])->name('login.form');
+Route::get('user/login', [FrontendController::class, 'loginSubmit'])->name('login.submit');
+Route::get('user/login', [FrontendController::class, 'logout'])->name('login.logout');
+
+Route::get('user/register', [FrontendController::class, 'register'])->name('register.form');
+Route::get('user/register', [FrontendController::class, 'registerSubmit'])->name('register.submit');
+
+
+
+
+
+//order
+Route::post('cart/order', [OrderController::class, 'store'])->name('cart.order');
+Route::get('order/pdf/{id}', [OrderController::class, 'pdf'])->name('order.pdf');
+Route::get('/income', [OrderController::class, 'incomeChart'])->name('product.order.income');
+Route::get('order/track', [OrderController::class, 'orderTrak'])->name('order.track');
+Route::get('order/track/order', [OrderController::class, 'productTrackorder'])->name('product.track.order');
