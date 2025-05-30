@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Helper;
 use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Shipping;
-use App\Models\User;
-use PDF; // Import the PDF facade
-use App\Models\Notification;
+use App\User;
+use PDF;
+use Notification;
+use Helper;
 use Illuminate\Support\Str;
 use App\Notifications\StatusNotification;
 
@@ -60,33 +60,6 @@ class OrderController extends Controller
             request()->session()->flash('error','Cart is Empty !');
             return back();
         }
-        // $cart=Cart::get();
-        // // return $cart;
-        // $cart_index='ORD-'.strtoupper(uniqid());
-        // $sub_total=0;
-        // foreach($cart as $cart_item){
-        //     $sub_total+=$cart_item['amount'];
-        //     $data=array(
-        //         'cart_id'=>$cart_index,
-        //         'user_id'=>$request->user()->id,
-        //         'product_id'=>$cart_item['id'],
-        //         'quantity'=>$cart_item['quantity'],
-        //         'amount'=>$cart_item['amount'],
-        //         'status'=>'new',
-        //         'price'=>$cart_item['price'],
-        //     );
-
-        //     $cart=new Cart();
-        //     $cart->fill($data);
-        //     $cart->save();
-        // }
-
-        // $total_prod=0;
-        // if(session('cart')){
-        //         foreach(session('cart') as $cart_items){
-        //             $total_prod+=$cart_items['quantity'];
-        //         }
-        // }
 
         $order=new Order();
         $order_data=$request->all();
@@ -117,32 +90,22 @@ class OrderController extends Controller
             }
         }
         // return $order_data['total_amount'];
-        // $order_data['status']="new";
-        // if(request('payment_method')=='paypal'){
-        //     $order_data['payment_method']='paypal';
-        //     $order_data['payment_status']='paid';
-        // }
-        // else{
-        //     $order_data['payment_method']='cod';
-        //     $order_data['payment_status']='Unpaid';
-        // }
-        if (request('payment_method') == 'paypal') {
-            $order_data['payment_method'] = 'paypal';
-            $order_data['payment_status'] = 'paid';
-        } elseif (request('payment_method') == 'cardpay') {
-            $order_data['payment_method'] = 'cardpay';
-            $order_data['payment_status'] = 'paid';
-        } else {
-            $order_data['payment_method'] = 'cod';
-            $order_data['payment_status'] = 'Unpaid';
-        }        
+        $order_data['status']="new";
+        if(request('payment_method')=='paypal'){
+            $order_data['payment_method']='paypal';
+            $order_data['payment_status']='paid';
+        }
+        else{
+            $order_data['payment_method']='cod';
+            $order_data['payment_status']='Unpaid';
+        }
         $order->fill($order_data);
         $status=$order->save();
         if($order)
         // dd($order->id);
         $users=User::where('role','admin')->first();
         $details=[
-            'title'=>'New Order Received',
+            'title'=>'New order created',
             'actionURL'=>route('order.show',$order->id),
             'fas'=>'fa-file-alt'
         ];
@@ -157,7 +120,7 @@ class OrderController extends Controller
         Cart::where('user_id', auth()->user()->id)->where('order_id', null)->update(['order_id' => $order->id]);
 
         // dd($users);        
-        request()->session()->flash('success','Your product order has been placed. Thank you for shopping with us.');
+        request()->session()->flash('success','Your product successfully placed in order');
         return redirect()->route('home');
     }
 
@@ -253,28 +216,28 @@ class OrderController extends Controller
         $order=Order::where('user_id',auth()->user()->id)->where('order_number',$request->order_number)->first();
         if($order){
             if($order->status=="new"){
-            request()->session()->flash('success','Your order has been placed.');
+            request()->session()->flash('success','Your order has been placed. please wait.');
             return redirect()->route('home');
 
             }
             elseif($order->status=="process"){
-                request()->session()->flash('success','Your order is currently processing.');
+                request()->session()->flash('success','Your order is under processing please wait.');
                 return redirect()->route('home');
     
             }
             elseif($order->status=="delivered"){
-                request()->session()->flash('success','Your order has been delivered. Thank you for shopping with us.');
+                request()->session()->flash('success','Your order is successfully delivered.');
                 return redirect()->route('home');
     
             }
             else{
-                request()->session()->flash('error','Sorry, your order has been canceled.');
+                request()->session()->flash('error','Your order canceled. please try again');
                 return redirect()->route('home');
     
             }
         }
         else{
-            request()->session()->flash('error','Invalid order number. Please try again!');
+            request()->session()->flash('error','Invalid order numer please try again');
             return back();
         }
     }

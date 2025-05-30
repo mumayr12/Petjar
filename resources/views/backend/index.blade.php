@@ -1,11 +1,10 @@
 @extends('backend.layouts.master')
-@section('title','Ecommerce Laravel || DASHBOARD')
+@section('title','Petjar DASHBOARD')
 @section('main-content')
 <div class="container-fluid">
 
 
     <!-- Page Heading -->
-    <!-- Visit 'codeastro' for more projects -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
       <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
     </div>
@@ -207,7 +206,7 @@
       </div>
     </div>
     <!-- Content Row -->
-    <!-- Visit 'codeastro' for more projects -->
+   
   </div>
 @endsection
 

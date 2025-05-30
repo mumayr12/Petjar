@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Brand;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Session; // Although Session facade is imported, the code uses the helper
+use App\Http\Helper; // <--- CHANGE THIS LINE: from App\Helpers\Helper to App\Http\Helper
 
 class BrandController extends Controller
 {
@@ -16,8 +16,8 @@ class BrandController extends Controller
      */
     public function index()
     {
-        $brand=Brand::orderBy('id','DESC')->paginate();
-        return view('backend.brand.index')->with('brands',$brand);
+        $brands = Brand::latest('id')->paginate();
+        return view('backend.brand.index', compact('brands'));
     }
 
     /**
@@ -38,27 +38,26 @@ class BrandController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request,[
-            'title'=>'string|required',
+        $validatedData = $request->validate([
+            'title' => 'required|string',
+            'status' => 'required|in:active,inactive',
         ]);
-        $data=$request->all();
-        $slug=Str::slug($request->title);
-        $count=Brand::where('slug',$slug)->count();
-        if($count>0){
-            $slug=$slug.'-'.date('ymdis').'-'.rand(0,999);
-        }
-        $data['slug']=$slug;
-        // return $data;
-        $status=Brand::create($data);
-        if($status){
-            // Corrected line
-            session()->flash('success','Brand created successfully');
-        }
-        else{
-            // Corrected line
-            session()->flash('error','Error, Please try again');
-        }
-        return redirect()->route('brand.index');
+
+        // Call the static method from your Helper class
+        $slug = Helper::generateUniqueSlug($request->title, Brand::class);
+
+        $validatedData['slug'] = $slug;
+
+        $brand = Brand::create($validatedData);
+
+        $message = $brand
+            ? 'Brand successfully created'
+            : 'Error, Please try again';
+
+        return redirect()->route('brand.index')->with(
+            $brand ? 'success' : 'error',
+            $message
+        );
     }
 
     /**
@@ -80,14 +79,14 @@ class BrandController extends Controller
      */
     public function edit($id)
     {
-        $brand=Brand::find($id);
-        if(!$brand){
-            // Corrected line
-            session()->flash('error','Brand not found');
-        }
-        return view('backend.brand.edit')->with('brand',$brand);
-    }
+        $brand = Brand::find($id);
 
+        if (!$brand) {
+            return redirect()->back()->with('error', 'Brand not found');
+        }
+
+        return view('backend.brand.edit', compact('brand'));
+    }
 
     /**
      * Update the specified resource in storage.
@@ -98,22 +97,32 @@ class BrandController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $brand=Brand::find($id);
-        $this->validate($request,[
-            'title'=>'string|required',
-        ]);
-        $data=$request->all();
+        $brand = Brand::find($id);
 
-        $status=$brand->fill($data)->save();
-        if($status){
-            // Corrected line
-            session()->flash('success','Brand updated successfully');
+        if (!$brand) {
+            return redirect()->back()->with('error', 'Brand not found');
         }
-        else{
-            // Corrected line
-            session()->flash('error','Error, Please try again');
+
+        $validatedData = $request->validate([
+            'title' => 'required|string',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        // If title is updated, you might want to regenerate the slug as well
+        if ($request->title !== $brand->title) {
+             $validatedData['slug'] = Helper::generateUniqueSlug($request->title, Brand::class);
         }
-        return redirect()->route('brand.index');
+
+        $status = $brand->update($validatedData);
+
+        $message = $status
+            ? 'Brand successfully updated'
+            : 'Error, Please try again';
+
+        return redirect()->route('brand.index')->with(
+            $status ? 'success' : 'error',
+            $message
+        );
     }
 
     /**
@@ -124,23 +133,21 @@ class BrandController extends Controller
      */
     public function destroy($id)
     {
-        $brand=Brand::find($id);
-        if($brand){
-            $status=$brand->delete();
-            if($status){
-                // Corrected line
-                session()->flash('success','Brand deleted successfully');
-            }
-            else{
-                // Corrected line
-                session()->flash('error','Error, Please try again');
-            }
-            return redirect()->route('brand.index');
+        $brand = Brand::find($id);
+
+        if (!$brand) {
+            return redirect()->back()->with('error', 'Brand not found');
         }
-        else{
-            // Corrected line
-            session()->flash('error','Brand not found');
-            return redirect()->back();
-        }
+
+        $status = $brand->delete();
+
+        $message = $status
+            ? 'Brand successfully deleted'
+            : 'Error, Please try again';
+
+        return redirect()->route('brand.index')->with(
+            $status ? 'success' : 'error',
+            $message
+        );
     }
 }

@@ -8,7 +8,9 @@ class Brand extends Model
 {
     protected $fillable=['title','slug','status'];
 
- 
+    // public static function getProductByBrand($id){
+    //     return Product::where('brand_id',$id)->paginate(10);
+    // }
     public function products(){
         return $this->hasMany('App\Models\Product','brand_id','id')->where('status','active');
     }

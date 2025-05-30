@@ -1,13 +1,12 @@
 @extends('backend.layouts.master')
 
 @section('main-content')
- <!-- DataTales Example -->
  <div class="card shadow mb-4">
-     <div class="row">
-         <div class="col-md-12">
-          
-         </div>
-     </div>
+    <div class="row">
+        <div class="col-md-12">
+            @include('backend.layouts.notification')
+        </div>
+    </div>
     <div class="card-header py-3">
       <h6 class="m-0 font-weight-bold text-primary float-left">Product Lists</h6>
       <a href="{{route('product.create')}}" class="btn btn-primary btn-sm float-right" data-toggle="tooltip" data-placement="bottom" title="Add User"><i class="fas fa-plus"></i> Add Product</a>
@@ -15,13 +14,13 @@
     <div class="card-body">
       <div class="table-responsive">
         @if(count($products)>0)
-        <table class="table table-bordered table-hover" id="product-dataTable" width="100%" cellspacing="0">
+        <table class="table table-bordered" id="product-dataTable" width="100%" cellspacing="0">
           <thead>
             <tr>
-              <th>#</th>
+              <th>S.N.</th>
               <th>Title</th>
               <th>Category</th>
-              <th>Featured</th>
+              <th>Is Featured</th>
               <th>Price</th>
               <th>Discount</th>
               <th>Size</th>
@@ -33,30 +32,45 @@
               <th>Action</th>
             </tr>
           </thead>
+          <tfoot>
+            <tr>
+              <th>S.N.</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Is Featured</th>
+              <th>Price</th>
+              <th>Discount</th>
+              <th>Size</th>
+              <th>Condition</th>
+              <th>Brand</th>
+              <th>Stock</th>
+              <th>Photo</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </tfoot>
           <tbody>
 
             @foreach($products as $product)
-              @php
-              $sub_cat_info=DB::table('categories')->select('title')->where('id',$product->child_cat_id)->get();
-              // dd($sub_cat_info);
-              $brands=DB::table('brands')->select('title')->where('id',$product->brand_id)->get();
-              @endphp
                 <tr>
                     <td>{{$product->id}}</td>
                     <td>{{$product->title}}</td>
-                    <td>{{$product->cat_info['title']}}
-                      <sub>
-                          {{$product->sub_cat_info->title ?? ''}}
-                      </sub>
+                    {{-- Safely access category title --}}
+                    <td>
+                        {{$product->category->title ?? 'N/A'}}
+                        <sub>
+                            {{$product->subCategory->title ?? ''}}
+                        </sub>
                     </td>
                     <td>{{(($product->is_featured==1)? 'Yes': 'No')}}</td>
-                    <td>${{$product->price}}</td>
-                    <td>  {{$product->discount}}%</td>
+                    <td>£ {{$product->price}} /-</td>
+                    <td>  {{$product->discount}}% OFF</td>
                     <td>{{$product->size}}</td>
                     <td>{{$product->condition}}</td>
-                    <td> {{ucfirst($product->brand->title)}}</td>
+                    {{-- Safely access brand title --}}
+                    <td> {{ucfirst($product->brand->title ?? 'N/A')}}</td>
                     <td>
-                      @if($product->stock>0)
+                      @if($product->stock > 0)
                       <span class="badge badge-primary">{{$product->stock}}</span>
                       @else
                       <span class="badge badge-danger">{{$product->stock}}</span>
@@ -65,8 +79,7 @@
                     <td>
                         @if($product->photo)
                             @php
-                              $photo=explode(',',$product->photo);
-                              // dd($photo);
+                                $photo=explode(',',$product->photo);
                             @endphp
                             <img src="{{$photo[0]}}" class="img-fluid zoom" style="max-width:80px" alt="{{$product->photo}}">
                         @else
@@ -120,17 +133,15 @@
 
 @push('scripts')
 
-  <!-- Page level plugins -->
   <script src="{{asset('backend/vendor/datatables/jquery.dataTables.min.js')}}"></script>
   <script src="{{asset('backend/vendor/datatables/dataTables.bootstrap4.min.js')}}"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
 
-  <!-- Page level custom scripts -->
   <script src="{{asset('backend/js/demo/datatables-demo.js')}}"></script>
   <script>
 
       $('#product-dataTable').DataTable( {
-        "scrollX": false,
+        "scrollX": false, // Added comma here
             "columnDefs":[
                 {
                     "orderable":false,

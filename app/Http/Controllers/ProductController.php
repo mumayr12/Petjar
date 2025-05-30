@@ -2,189 +2,130 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-
-use Illuminate\Support\Facades\Session;
+use App\Http\Helper; // <--- ADDED THIS LINE: Import the Helper class
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        $products=Product::getAllProduct();
-        // return $products;
-        return view('backend.product.index')->with('products',$products);
+        $products = Product::with(['cat_info', 'sub_cat_info'])
+                           ->orderBy('id', 'desc')
+                           ->paginate(10);
+        return view('backend.product.index', compact('products'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
-        $brand=Brand::get();
-        $category=Category::where('is_parent',1)->get();
-        // return $category;
-        return view('backend.product.create')->with('categories',$category)->with('brands',$brand);
+        $brands = Brand::all();
+        $categories = Category::where('is_parent', 1)->get();
+        return view('backend.product.create', compact('categories', 'brands'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        // return $request->all();
-        $this->validate($request,[
-            'title'=>'string|required',
-            'summary'=>'string|required',
-            'description'=>'string|nullable',
-            'photo'=>'string|required',
-            'size'=>'nullable',
-            'stock'=>"required|numeric",
-            'cat_id'=>'required|exists:categories,id',
-            'brand_id'=>'nullable|exists:brands,id',
-            'child_cat_id'=>'nullable|exists:categories,id',
-            'is_featured'=>'sometimes|in:1',
-            'status'=>'required|in:active,inactive',
-            'condition'=>'required|in:default,new,hot',
-            'price'=>'required|numeric',
-            'discount'=>'nullable|numeric'
-        ]);
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'summary' => 'required|string',
+                'description' => 'nullable|string',
+                'photo' => 'required|string',
+                'size' => 'nullable|array',
+                'stock' => 'required|integer|min:0',
+                'cat_id' => 'required|exists:categories,id',
+                'child_cat_id' => 'nullable|exists:categories,id',
+                'is_featured' => 'sometimes|boolean',
+                'brand_id' => 'nullable|exists:brands,id',
+                'status' => 'required|in:active,inactive',
+                'condition' => 'required|in:default,new,hot',
+                'price' => 'required|numeric|min:0',
+                'discount' => 'nullable|numeric|min:0|max:100', // Already nullable
+            ]);
 
-        $data=$request->all();
-        $slug=Str::slug($request->title);
-        $count=Product::where('slug',$slug)->count();
-        if($count>0){
-            $slug=$slug.'-'.date('ymdis').'-'.rand(0,999);
-        }
-        $data['slug']=$slug;
-        $data['is_featured']=$request->input('is_featured',0);
-        $size=$request->input('size');
-        if($size){
-            $data['size']=implode(',',$size);
-        }
-        else{
-            $data['size']='';
-        }
-        // return $size;
-        // return $data;
-        $status=Product::create($data);
-        if($status){
-            request()->session()->flash('success','Product added');
-        }
-        else{
-            request()->session()->flash('error','Please try again!!');
-        }
-        return redirect()->route('product.index');
+            $validated['slug'] = Helper::generateUniqueSlug($validated['title'], Product::class);
+            $validated['is_featured'] = $request->has('is_featured');
+            $validated['size'] = $request->has('size') ? implode(',', $request->size) : null;
+            $validated['child_cat_id'] = $validated['child_cat_id'] ?? null;
 
+            Product::create($validated);
+
+            return redirect()->route('product.index')
+                             ->with('success', 'Product created successfully');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            Log::error('Product Store Error: '.$e->getMessage());
+            return redirect()->back()->with('error', 'Error creating product: '.$e->getMessage());
+        }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function edit($id)
     {
-        $brand=Brand::get();
-        $product=Product::findOrFail($id);
-        $category=Category::where('is_parent',1)->get();
-        $items=Product::where('id',$id)->get();
-        // return $items;
-        return view('backend.product.edit')->with('product',$product)
-                    ->with('brands',$brand)
-                    ->with('categories',$category)->with('items',$items);
+        $product = Product::findOrFail($id);
+        $brands = Brand::all();
+        $categories = Category::where('is_parent', 1)->get();
+        return view('backend.product.edit', compact('product', 'brands', 'categories'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
-        $product=Product::findOrFail($id);
-        $this->validate($request,[
-            'title'=>'string|required',
-            'summary'=>'string|required',
-            'description'=>'string|nullable',
-            'photo'=>'string|required',
-            'size'=>'nullable',
-            'stock'=>"required|numeric",
-            'cat_id'=>'required|exists:categories,id',
-            'child_cat_id'=>'nullable|exists:categories,id',
-            'is_featured'=>'sometimes|in:1',
-            'brand_id'=>'nullable|exists:brands,id',
-            'status'=>'required|in:active,inactive',
-            'condition'=>'required|in:default,new,hot',
-            'price'=>'required|numeric',
-            'discount'=>'nullable|numeric'
-        ]);
+        try {
+            $product = Product::findOrFail($id);
 
-        $data=$request->all();
-        $data['is_featured']=$request->input('is_featured',0);
-        $size=$request->input('size');
-        if($size){
-            $data['size']=implode(',',$size);
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'summary' => 'required|string',
+                'description' => 'nullable|string',
+                'photo' => 'required|string',
+                'size' => 'nullable|array',
+                'stock' => 'required|integer|min:0',
+                'cat_id' => 'required|exists:categories,id',
+                'child_cat_id' => 'nullable|exists:categories,id',
+                'is_featured' => 'sometimes|boolean',
+                'brand_id' => 'nullable|exists:brands,id',
+                'status' => 'required|in:active,inactive',
+                'condition' => 'required|in:default,new,hot',
+                'price' => 'required|numeric|min:0',
+                'discount' => 'nullable|numeric|min:0|max:100', // Already nullable
+            ]);
+
+            if ($product->title !== $validated['title']) {
+                $validated['slug'] = Helper::generateUniqueSlug($validated['title'], Product::class);
+            }
+
+            $validated['is_featured'] = $request->has('is_featured');
+            $validated['size'] = $request->has('size') ? implode(',', $request->size) : null;
+            $validated['child_cat_id'] = $validated['child_cat_id'] ?? null;
+
+            $product->update($validated);
+
+            return redirect()->route('product.index')
+                             ->with('success', 'Product updated successfully');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            Log::error('Product Update Error: '.$e->getMessage());
+            return redirect()->back()->with('error', 'Error updating product: '.$e->getMessage());
         }
-        else{
-            $data['size']='';
-        }
-        // return $data;
-        $status=$product->fill($data)->save();
-        if($status){
-            request()->session()-> flash('success','Product updated');
-        }
-        else{
-            request()->session()-> flash('error','Please try again!!');
-        }
-        return redirect()->route('product.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
-        $product=Product::findOrFail($id);
-        $status=$product->delete();
-        
-        if($status){
-            request()->session()->flash('success','Product deleted');
+        try {
+            $product = Product::findOrFail($id);
+            $product->delete();
+            return redirect()->route('product.index')
+                             ->with('success', 'Product deleted successfully');
+        } catch (\Exception $e) {
+            Log::error('Product Delete Error: '.$e->getMessage());
+            return redirect()->back()->with('error', 'Error deleting product: '.$e->getMessage());
         }
-        else{
-            request()->session()->flash('error','Error while deleting product');
-        }
-        return redirect()->route('product.index');
     }
 }

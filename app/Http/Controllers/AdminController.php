@@ -4,34 +4,32 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Settings;
-use App\Models\User;
+use App\User;
 use App\Rules\MatchOldPassword;
-use Illuminate\Support\Facades\Hash; // Import the Hash facade
-use Illuminate\Support\Facades\DB;   // Import the DB facade
+use Hash;
 use Carbon\Carbon;
 use Spatie\Activitylog\Models\Activity;
-use Illuminate\Support\Facades\Auth; // Import the Auth facade
-
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 class AdminController extends Controller
 {
     public function index(){
-        $data = User::select(DB::raw("COUNT(*) as count"), DB::raw("DAYNAME(created_at) as day_name"), DB::raw("DAY(created_at) as day"))
+        $data = User::select(\DB::raw("COUNT(*) as count"), \DB::raw("DAYNAME(created_at) as day_name"), \DB::raw("DAY(created_at) as day"))
         ->where('created_at', '>', Carbon::today()->subDay(6))
         ->groupBy('day_name','day')
         ->orderBy('day')
         ->get();
-       $array[] = ['Name', 'Number'];
-       foreach($data as $key => $value)
-       {
-           $array[++$key] = [$value->day_name, $value->count];
-       }
-    //    return $data;
-       return view('backend.index')->with('users', json_encode($array));
+     $array[] = ['Name', 'Number'];
+     foreach($data as $key => $value)
+     {
+       $array[++$key] = [$value->day_name, $value->count];
+     }
+    //  return $data;
+     return view('backend.index')->with('users', json_encode($array));
     }
 
-
     public function profile(){
-        $profile=Auth::user(); // Use the imported Auth facade
+        $profile=Auth()->user();
         // return $profile;
         return view('backend.users.profile')->with('profile',$profile);
     }
@@ -83,7 +81,6 @@ class AdminController extends Controller
     public function changePassword(){
         return view('backend.layouts.changePassword');
     }
-
     public function changPasswordStore(Request $request)
     {
         $request->validate([
@@ -100,17 +97,48 @@ class AdminController extends Controller
     // Pie chart
     public function userPieChart(Request $request){
         // dd($request->all());
-        $data = User::select(DB::raw("COUNT(*) as count"), DB::raw("DAYNAME(created_at) as day_name"), DB::raw("DAY(created_at) as day"))
+        $data = User::select(\DB::raw("COUNT(*) as count"), \DB::raw("DAYNAME(created_at) as day_name"), \DB::raw("DAY(created_at) as day"))
         ->where('created_at', '>', Carbon::today()->subDay(6))
         ->groupBy('day_name','day')
         ->orderBy('day')
         ->get();
-       $array[] = ['Name', 'Number'];
-       foreach($data as $key => $value)
-       {
-           $array[++$key] = [$value->day_name, $value->count];
-       }
-    //    return $data;
-       return view('backend.index')->with('course', json_encode($array));
+     $array[] = ['Name', 'Number'];
+     foreach($data as $key => $value)
+     {
+       $array[++$key] = [$value->day_name, $value->count];
+     }
+    //  return $data;
+     return view('backend.index')->with('course', json_encode($array));
+    }
+
+
+    public function storageLink(){
+        // check if the storage folder already linked;
+        if(File::exists(public_path('storage'))){
+            // removed the existing symbolic link
+            File::delete(public_path('storage'));
+
+            //Regenerate the storage link folder
+            try{
+                Artisan::call('storage:link');
+                request()->session()->flash('success', 'Successfully storage linked.');
+                return redirect()->back();
+            }
+            catch(\Exception $exception){
+                request()->session()->flash('error', $exception->getMessage());
+                return redirect()->back();
+            }
+        }
+        else{
+            try{
+                Artisan::call('storage:link');
+                request()->session()->flash('success', 'Successfully storage linked.');
+                return redirect()->back();
+            }
+            catch(\Exception $exception){
+                request()->session()->flash('error', $exception->getMessage());
+                return redirect()->back();
+            }
+        }
     }
 }

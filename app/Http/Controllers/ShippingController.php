@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Shipping;
-use Illuminate\Support\Facades\Session; // Session facade is imported, but often direct request session access is preferred
+use App\Models\Coupon;
 
 class ShippingController extends Controller
 {
@@ -46,10 +46,10 @@ class ShippingController extends Controller
         // return $data;
         $status=Shipping::create($data);
         if($status){
-            $request->session()->flash('success','Shipping created successfully');
+            request()->session()->flash('success','Shipping successfully created');
         }
         else{
-            $request->session()->flash('error','Error, Please try again');
+            request()->session()->flash('error','Error, Please try again');
         }
         return redirect()->route('shipping.index');
     }
@@ -75,9 +75,7 @@ class ShippingController extends Controller
     {
         $shipping=Shipping::find($id);
         if(!$shipping){
-            // Corrected: Access session directly from the request object
-            $request = request(); // Get the current request instance
-            $request->session()->flash('error','Shipping not found');
+            request()->session()->flash('error','Shipping not found');
         }
         return view('backend.shipping.edit')->with('shipping',$shipping);
     }
@@ -101,10 +99,10 @@ class ShippingController extends Controller
         // return $data;
         $status=$shipping->fill($data)->save();
         if($status){
-            $request->session()->flash('success','Shipping updated');
+            request()->session()->flash('success','Shipping successfully updated');
         }
         else{
-            $request->session()->flash('error','Error, Please try again');
+            request()->session()->flash('error','Error, Please try again');
         }
         return redirect()->route('shipping.index');
     }
@@ -121,17 +119,14 @@ class ShippingController extends Controller
         if($shipping){
             $status=$shipping->delete();
             if($status){
-                // Corrected: Access session directly from the request object
-                request()->session()->flash('success','Shipping deleted');
+                request()->session()->flash('success','Shipping successfully deleted');
             }
             else{
-                // Corrected: Access session directly from the request object
                 request()->session()->flash('error','Error, Please try again');
             }
             return redirect()->route('shipping.index');
         }
         else{
-            // Corrected: Access session directly from the request object
             request()->session()->flash('error','Shipping not found');
             return redirect()->back();
         }
